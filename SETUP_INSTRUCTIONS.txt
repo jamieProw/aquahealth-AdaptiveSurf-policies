@@ -1,0 +1,71 @@
+# Aqua Health Policy App — Setup Instructions
+# Takes about 10 minutes. Free forever.
+
+## What you'll need
+- A free GitHub account (github.com — sign up if you don't have one)
+- The 5 files in this zip
+
+## Step-by-step
+
+### 1. Create a GitHub account (if you don't have one)
+- Go to github.com
+- Click "Sign up" — use any email address
+- Choose the FREE plan
+
+### 2. Create a new repository
+- Once logged in, click the green "New" button (top left)
+- Repository name: aquahealth-policies  (exactly like this, no spaces)
+- Make sure "Public" is selected
+- Tick "Add a README file"
+- Click "Create repository"
+
+### 3. Upload the app files
+- You'll see your new repository page
+- Click "Add file" → "Upload files"
+- Drag ALL 5 files into the upload area:
+    index.html
+    manifest.json
+    sw.js
+    icon-192.png
+    icon-512.png
+- Scroll down and click "Commit changes"
+
+### 4. Turn on GitHub Pages
+- Click "Settings" (tab along the top of your repository)
+- In the left sidebar, click "Pages"
+- Under "Branch", change the dropdown from "None" to "main"
+- Click "Save"
+- Wait 2 minutes, then refresh the page
+- You'll see a green box that says:
+  "Your site is live at https://YOUR-USERNAME.github.io/aquahealth-policies"
+
+### 5. Share the link with your team
+- Copy that link (e.g. https://rachael123.github.io/aquahealth-policies)
+- Send it to your team via WhatsApp
+
+## Installing on iPad (you + your team)
+
+Each person does this once on their iPad:
+
+1. Open Safari on the iPad
+2. Go to the link above
+3. Tap the Share button (box with arrow pointing up)
+4. Scroll down and tap "Add to Home Screen"
+5. Tap "Add"
+
+The app icon will appear on the home screen.
+Open it once while on Wi-Fi — after that it works with NO internet.
+
+## Updating policies in future
+
+1. Log into github.com
+2. Go to your aquahealth-policies repository
+3. Click on index.html
+4. Click the pencil (edit) icon
+5. Make your changes
+6. Click "Commit changes"
+7. The app updates automatically for everyone within a few minutes
+   (they'll need Wi-Fi once to get the update, then it works offline again)
+
+## Questions?
+Contact: rachael@aquahealth.gg

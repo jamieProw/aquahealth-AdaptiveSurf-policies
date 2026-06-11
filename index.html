@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AH Policies">
+<meta name="theme-color" content="#0a2540">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Aqua Health Policies</title>
+<style>
+  :root {
+    --ocean-deep: #0a2540;
+    --ocean-mid: #1a4a7a;
+    --ocean-surf: #2d7dd2;
+    --foam: #e8f4fd;
+    --sand: #f5f0e8;
+    --sand-dark: #e8dfc8;
+    --slate: #4a5568;
+    --ink: #1a202c;
+    --white: #ffffff;
+    --alert: #c53030;
+    --caution: #c05621;
+    --safe: #276749;
+    --highlight: #fff176;
+    --radius: 12px;
+    --shadow: 0 2px 14px rgba(10,37,64,0.10);
+    --header-h: 120px;
+    --tab-h: 48px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--sand);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--ocean-deep);
+    padding: 52px 16px 12px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 10;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .app-icon {
+    width: 34px; height: 34px;
+    background: var(--ocean-mid);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .header-text h1 {
+    font-size: 17px; font-weight: 700; color: #fff;
+    letter-spacing: -0.3px;
+  }
+  .header-text p {
+    font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px;
+  }
+
+  .offline-dot {
+    margin-left: auto;
+    background: var(--safe);
+    color: #fff;
+    font-size: 9px; font-weight: 700;
+    padding: 3px 8px; border-radius: 20px;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+
+  .search-wrap { position: relative; }
+  .search-wrap input {
+    width: 100%;
+    padding: 10px 14px 10px 40px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    -webkit-appearance: none;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .search-wrap input::placeholder { color: rgba(255,255,255,0.4); }
+  .search-wrap input:focus {
+    background: rgba(255,255,255,0.18);
+    border-color: var(--ocean-surf);
+  }
+  .search-icon {
+    position: absolute; left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.45);
+    pointer-events: none;
+  }
+  .clear-btn {
+    position: absolute; right: 10px; top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.2);
+    border: none; color: #fff;
+    width: 20px; height: 20px;
+    border-radius: 50%; font-size: 12px;
+    cursor: pointer; display: none;
+    align-items: center; justify-content: center;
+    line-height: 1;
+  }
+  .clear-btn.show { display: flex; }
+
+  /* ── TABS ── */
+  .tab-bar {
+    display: flex;
+    background: var(--ocean-deep);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+  }
+  .tab-btn {
+    flex: 1; background: none; border: none;
+    padding: 0 0 2px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 3px; height: var(--tab-h);
+    cursor: pointer;
+    color: rgba(255,255,255,0.45);
+    font-size: 10px; font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab-btn svg { opacity: 0.6; transition: opacity 0.15s; }
+  .tab-btn.active {
+    color: #fff;
+    border-bottom-color: var(--ocean-surf);
+  }
+  .tab-btn.active svg { opacity: 1; }
+
+  /* ── CONTENT AREA ── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 14px 14px calc(14px + var(--safe-bottom));
+  }
+
+  /* ── QUICK REF ── */
+  .qr-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .qr-card {
+    background: var(--ocean-deep);
+    border-radius: 10px;
+    padding: 12px;
+    border-left: 4px solid var(--ocean-surf);
+  }
+  .qr-card.alert { border-left-color: #fc8181; }
+  .qr-card.caution { border-left-color: #f6ad55; }
+  .qr-card.safe { border-left-color: #68d391; }
+  .qr-card.full { grid-column: 1 / -1; }
+  .qr-label {
+    font-size: 8px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    color: rgba(255,255,255,0.4); margin-bottom: 4px;
+  }
+  .qr-value {
+    font-size: 18px; font-weight: 800; color: #fff;
+    line-height: 1.2; margin-bottom: 3px;
+  }
+  .qr-value.sm { font-size: 13px; }
+  .qr-sub { font-size: 10px; color: rgba(255,255,255,0.5); line-height: 1.4; }
+
+  /* ── DOCS LIST ── */
+  .doc-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .doc-header {
+    background: var(--ocean-deep);
+    padding: 13px 14px;
+    display: flex; align-items: center;
+    justify-content: space-between;
+    cursor: pointer; user-select: none;
+  }
+  .doc-header-left h3 {
+    font-size: 14px; font-weight: 600; color: #fff;
+  }
+  .doc-header-left p {
+    font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 2px;
+  }
+  .doc-chevron {
+    color: rgba(255,255,255,0.5);
+    transition: transform 0.2s;
+    flex-shrink: 0; margin-left: 8px;
+  }
+  .doc-card.open .doc-chevron { transform: rotate(180deg); }
+  .doc-body { display: none; padding: 14px; }
+  .doc-card.open .doc-body { display: block; }
+
+  .sec-heading {
+    font-size: 12px; font-weight: 700;
+    color: var(--ocean-mid);
+    text-transform: uppercase; letter-spacing: 0.4px;
+    margin: 14px 0 6px;
+    padding-bottom: 4px;
+    border-bottom: 1.5px solid var(--foam);
+  }
+  .sec-heading:first-child { margin-top: 0; }
+  .sec-content {
+    font-size: 13px; color: var(--slate);
+    line-height: 1.65;
+  }
+  .sec-content mark {
+    background: var(--highlight);
+    color: var(--ink);
+    border-radius: 2px;
+    padding: 0 1px;
+  }
+
+  /* ── SEARCH RESULTS ── */
+  .results-header {
+    font-size: 12px; color: var(--slate);
+    font-weight: 500; padding: 2px 0 10px;
+  }
+  .result-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 13px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    border-left: 3px solid var(--ocean-surf);
+    cursor: pointer;
+    active-scale: 0.98;
+  }
+  .result-card:active { opacity: 0.85; }
+  .result-doc { font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.6px; color: var(--ocean-mid); margin-bottom: 4px; }
+  .result-sec { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .result-snippet { font-size: 12px; color: var(--slate); line-height: 1.5; }
+  .result-snippet mark { background: var(--highlight); color: var(--ink);
+    border-radius: 2px; padding: 0 1px; font-weight: 600; }
+
+  .no-results {
+    text-align: center; padding: 50px 20px; color: var(--slate);
+  }
+  .no-results svg { opacity: 0.25; margin-bottom: 12px; display: block; margin: 0 auto 12px; }
+  .no-results p { font-size: 14px; }
+
+  /* ── EMPTY STATE (docs) ── */
+  .docs-empty { display: none; }
+  .results-panel { display: none; }
+  .results-panel.active { display: block; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-thumb { background: var(--sand-dark); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <div class="app-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2d7dd2" stroke-width="2.5" stroke-linecap="round">
+        <path d="M2 17 C5 13 8 19 11 15 C14 11 17 19 20 15 C21.5 13 22 14 22 14"/>
+        <path d="M2 21 C5 17 8 23 11 19 C14 15 17 23 20 19"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>Aqua Health Policies</h1>
+      <p>Adaptive &amp; Inclusive Surf — 2026</p>
+    </div>
+    <span class="offline-dot">● Offline</span>
+  </div>
+  <div class="search-wrap">
+    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="search" id="searchInput" placeholder="Search all policies…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+    <button class="clear-btn" id="clearBtn">✕</button>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="quickref">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Quick Ref
+  </button>
+  <button class="tab-btn" data-tab="docs">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Documents
+  </button>
+</div>
+
+<div class="content" id="mainContent">
+  <!-- QUICK REF -->
+  <div id="tab-quickref">
+    <div class="qr-grid">
+      <div class="qr-card alert">
+        <div class="qr-label">Age — Eligibility</div>
+        <div class="qr-value">18+</div>
+        <div class="qr-sub">Adults only. 16–18 with parent/guardian actively present</div>
+      </div>
+      <div class="qr-card caution">
+        <div class="qr-label">Max Ratio</div>
+        <div class="qr-value">1 : 8</div>
+        <div class="qr-sub">Instructor to participants. Adaptive sessions are 1:1</div>
+      </div>
+      <div class="qr-card safe">
+        <div class="qr-label">Adaptive Sessions</div>
+        <div class="qr-value">1 : 1</div>
+        <div class="qr-sub">High-supervision. Comms check-in with onshore staff required</div>
+      </div>
+      <div class="qr-card">
+        <div class="qr-label">First Aid</div>
+        <div class="qr-value sm">Always on site</div>
+        <div class="qr-sub">At least one qualified first aider + kit at every session</div>
+      </div>
+      <div class="qr-card alert full">
+        <div class="qr-label">Stop Activity — Weather Thresholds</div>
+        <div class="qr-value sm">Wind &gt; 20 mph &nbsp;|&nbsp; Waves &gt; 2 m &nbsp;|&nbsp; Water &lt; 10°C &nbsp;|&nbsp; Visibility &lt; 150 m</div>
+        <div class="qr-sub">Senior instructor makes final call. Follow RNLI advice at all times</div>
+      </div>
+      <div class="qr-card caution">
+        <div class="qr-label">DBS Checks</div>
+        <div class="qr-value sm">All volunteers</div>
+        <div class="qr-sub">Current DBS on file before any participant contact</div>
+      </div>
+      <div class="qr-card safe">
+        <div class="qr-label">Emergency Kit</div>
+        <div class="qr-value sm">Always carried</div>
+        <div class="qr-sub">Radio + mobile + first aid on every 1:1 session</div>
+      </div>
+      <div class="qr-card caution full">
+        <div class="qr-label">Marine Life Treatment</div>
+        <div class="qr-value sm">Jellyfish → vinegar &nbsp;|&nbsp; Weaver fish → hot water</div>
+        <div class="qr-sub">Portuguese man o' war = cancel session. Seals / sharks / dolphins = exit water</div>
+      </div>
+      <div class="qr-card">
+        <div class="qr-label">Equipment Review</div>
+        <div class="qr-value sm">Quarterly</div>
+        <div class="qr-sub">Unfit boards: 'out of use' tag + leash removed</div>
+      </div>
+      <div class="qr-card">
+        <div class="qr-label">Policy Review</div>
+        <div class="qr-value sm">Annual</div>
+        <div class="qr-sub">Safety monitoring plan reviewed semi-annually</div>
+      </div>
+      <div class="qr-card safe full">
+        <div class="qr-label">Key Contacts</div>
+        <div class="qr-value sm">Rachael Green — Director &amp; Safeguarding Lead</div>
+        <div class="qr-sub">rachael@aquahealth.gg &nbsp;|&nbsp; H&amp;S Advisor: Paul Donovan — escape.routes@btopenworld.com</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOCUMENTS -->
+  <div id="tab-docs" style="display:none;">
+    <div class="results-panel" id="resultsPanel">
+      <div class="results-header" id="resultsHeader"></div>
+      <div id="resultsList"></div>
+      <div class="no-results" id="noResults" style="display:none;">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#4a5568" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <p>No results found.<br>Try different keywords.</p>
+      </div>
+    </div>
+    <div id="docsList"></div>
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────
+const POLICIES = [
+  {
+    id:"p1", title:"Surfing Operating Policy & Procedures", sub:"Inclusive & Adaptive Surf", updated:"28/01/2026",
+    sections:[
+      {h:"Introduction", c:"Aqua Health is committed to providing safe, inclusive, and supportive surfing experiences. This document brings together organisational policy, safety standards, and operating procedures to ensure the well-being of participants, staff, and volunteers across all surfing activities. It specifically recognises the additional considerations required for Inclusive and Adaptive Surfing."},
+      {h:"Purpose & Objectives", c:"Ensure the safety and well-being of all participants, staff, and volunteers. Establish clear operational standards for surfing activities. Minimise risk through consistent safety and risk-management practices. Promote inclusive and adaptive surfing opportunities. Provide clarity of roles, responsibilities, and expectations."},
+      {h:"Scope", c:"This policy applies to all surfing activities delivered by Aqua Health including Adaptive Surf Therapy sessions, Inclusive surf lessons, Guided surfing sessions, and Recreational and community surfing activities. It applies to all Aqua Health employees, instructors, contractors, volunteers, and participants involved in surfing operations."},
+      {h:"Adaptive Surf Definition", c:"Adaptive Surf refers to specialised surfing sessions designed for individuals with physical disabilities and/or inclusivity needs. Adaptive Surf Therapy is delivered on a 1:1 basis providing tailored instruction and support. Additional in-water or on-land support including volunteers may be introduced following individual assessment."},
+      {h:"5.1 Instructor Qualifications", c:"All instructors must hold a relevant Surfing or Adaptive Surf qualification. Instructors must hold a current lifesaving qualification including First Aid and CPR. Adaptive Surf instructors must be trained in adaptive techniques and disability-aware practice."},
+      {h:"5.2 Equipment", c:"All surfing and adaptive equipment must be regularly inspected and maintained. Inspection and maintenance records must be kept on file. Equipment must be appropriately selected and adapted to meet individual participant needs."},
+      {h:"5.3 Risk Assessment", c:"A risk assessment must be conducted for each session considering weather and surf conditions, location-specific hazards, and participant abilities and support requirements. Risk assessments will be reviewed and updated following incidents or near misses."},
+      {h:"5.4 Emergency Procedures", c:"Clear emergency procedures must be established and communicated to staff and participants. Instructors must be familiar with local emergency services and protocols. Specific emergency plans must be in place for adaptive and inclusive surf sessions."},
+      {h:"5.5 Lone Working / 1:1 Session Safety", c:"The majority of Adaptive Surf sessions are delivered 1:1. These sessions are considered high-supervision rather than traditional lone working. Instructors must follow a strict communication protocol including check-ins with onshore staff or designated support personnel when additional volunteers are not present. Emergency equipment including radio, mobile, and first aid kit must be on hand at all times. A risk assessment specific to 1:1 delivery must be completed before each session. If conditions are deemed unsafe the activity must be rescheduled or additional support provided."},
+      {h:"6. Surfing Operating Procedures (SOP)", c:"Pre-Activity: Assess weather, tide, and surf conditions. Conduct site safety checks. Carry out participant assessments. Deliver participant briefings. Check and prepare all equipment. On-Site: Maintain appropriate instructor-to-participant ratios. Supervise participants in and out of the water. Continuously monitor environmental conditions. Implement adaptive and inclusive support measures. Adjust or stop activities if conditions become unsafe. Post-Activity: Review any incidents or near misses. Document feedback, observations, and lessons learned. Update risk assessments where required."},
+      {h:"7. Adaptive & Inclusive Surf Programme", c:"Sessions are delivered primarily on a 1:1 basis. Sessions are tailored to each participant's physical, inclusivity, and wellness needs. A preliminary assessment will be conducted prior to participation. Session plans will be adapted to maximise comfort, safety, and enjoyment. Additional support including volunteers may be introduced if required. Instructors must be trained in adaptive and inclusive techniques."},
+      {h:"8. Age Requirements", c:"Adaptive Surf activities are available to adults aged 18 and over. Participants aged 16 to 18 may take part when accompanied by a parent or legal guardian. Parents or guardians must be actively involved where required."},
+      {h:"9. Roles & Responsibilities", c:"Management: Oversee implementation and compliance with this policy. Provide appropriate resources, training, and support. Instructors: Deliver safe and inclusive sessions. Conduct briefings and risk assessments. Monitor participant safety at all times. Participants: Follow instructor guidance and safety instructions. Report concerns, injuries, or incidents promptly."},
+    ]
+  },
+  {
+    id:"p2", title:"Surf Incident Reporting Procedures", sub:"Incident Reporting & Emergency Action Plan", updated:"2026",
+    sections:[
+      {h:"Introduction", c:"The Surf Incident Reporting Procedures outline the steps to be followed in the event of any safety incidents, accidents, or near misses during surf activities. The purpose is to ensure that all incidents are promptly reported, documented, investigated, and addressed to prevent recurrence and promote participant safety."},
+      {h:"2.1 Immediate Response", c:"In the event of a safety incident the surf instructor or designated instructor on duty will provide immediate assistance to any injured or distressed participants. The priority is to ensure the safety and well-being of all participants and to minimise further risk of harm."},
+      {h:"2.2 Incident Reporting", c:"Following the initial response the surf instructor will complete an Incident Report Form detailing the nature of the incident, injuries sustained if any, and any contributing factors observed. The Incident Report Form must be completed as soon as possible after the incident and submitted to Rachael Green."},
+      {h:"3. Incident Investigation", c:"Documentation: The designated instructor will review the Incident Report Form and initiate an investigation to determine the root cause of the incident. Additional witness statements or evidence may be collected. Analysis: The surf instructor will analyse the circumstances including environmental factors, participant behaviour, equipment failure, and any other relevant factors. Corrective Actions: Based on investigation findings appropriate corrective actions will be implemented to address identified hazards, mitigate risks, and prevent similar incidents."},
+      {h:"4. Follow-Up & Review", c:"The progress and effectiveness of corrective actions will be monitored and reviewed regularly. Lessons learned from incident investigations will be used to update and improve safety procedures, training programs, and risk management practices."},
+      {h:"Emergency Action Plan — Objectives", c:"To establish clear roles and responsibilities for staff in responding to emergencies. To ensure prompt and appropriate actions are taken. To provide guidance on communication, evacuation, first aid, and contacting emergency services. To facilitate the efficient coordination of emergency response efforts among staff, participants, and external agencies."},
+      {h:"Emergency Response — Immediate Action & Communication", c:"Immediate Response: The designated Instructor or senior instructor on duty will assume command and initiate emergency procedures. Immediate assistance will be provided to any injured or distressed participants. Communication: The designated Instructor will communicate the nature of the emergency to all staff members, participants, and volunteers using two-way radios, mobile phones, and whistles."},
+      {h:"Emergency Response — Evacuation, First Aid & Services", c:"Evacuation: If evacuation is necessary participants will be directed to move to designated assembly points or safe areas away from the hazard. Staff will assist participants with mobility impairments to safely evacuate. First Aid: Trained first aiders will provide immediate medical assistance. First aid kits and AEDs if available will be accessible. Emergency Services: Emergency services including lifeguards, paramedics, and fire department will be contacted immediately. The designated Instructor will provide accurate location details to emergency services."},
+      {h:"Incident Report Form — Required Fields", c:"Date of incident. Time when the incident occurred. Location — specific location. Description of incident — detailed description. Witnesses — names or contact information. Injuries — description of any injuries sustained. Damage — description of any damage to property or equipment. Immediate action taken. Person reporting — name, position and title. Contact information. Supervisor or Manager notified. Additional notes. Follow-up information — steps taken for investigation, corrective actions, and monitoring progress."},
+    ]
+  },
+  {
+    id:"p3", title:"Health & Safety Policy Manual", sub:"Adaptive Surf", updated:"28/01/2026",
+    sections:[
+      {h:"Introduction", c:"Aqua Health is committed to providing safe, inclusive, and supportive surfing experiences while maintaining the highest health and safety standards. This document combines Surfing Operating Policy and Procedures, Adaptive Surf guidelines, and our Health and Safety Policy Manual, creating a unified framework for all operations."},
+      {h:"Policy Statement", c:"Providing a safe, healthy, and inclusive environment for participants, staff, and visitors. Complying with all relevant local and national legislation, regulations, and standards. Identifying hazards, assessing risks, and implementing effective controls. Continually improving health, safety, and operational practices through regular review and assessment."},
+      {h:"Roles & Responsibilities", c:"Management Rachael Green: Establish and maintain effective health, safety, and operational management systems. Allocate resources to support safety initiatives. Promote a positive safety culture and lead by example. Health and Safety Officer Rachael Green: Implement policies and procedures across all operations. Conduct inspections, audits, and hazard assessments. Investigate incidents, near misses, and complaints. Instructors: Deliver safe, inclusive, and adaptive sessions. Conduct pre-activity briefings, risk assessments, and participant monitoring. Participants: Follow safety instructions. Report hazards, incidents, or concerns promptly."},
+      {h:"5.1–5.4 Hazard ID, Training, Emergency & Incidents", c:"Hazard Identification and Risk Assessment: Regularly identify hazards and assess associated risks. Implement controls to minimise or eliminate risks. Review risk assessments when new hazards arise or conditions change. Training and Induction: Provide comprehensive induction training for all staff and volunteers. Conduct regular drills and training. Emergency Procedures: Maintain procedures for medical emergencies, environmental incidents, and other contingencies. Conduct regular evacuation and emergency drills. Ensure staff are aware of assembly points and emergency contacts. Incident Reporting and Investigation: All incidents, accidents, near misses, and hazards must be reported immediately. Investigations will identify root causes and corrective measures."},
+      {h:"6.4 Lone Working / 1:1 Session Safety", c:"Adaptive Surf sessions are delivered 1:1 and this is considered high-supervision rather than lone working. Instructors must follow communication protocols including check-ins with onshore staff. Emergency equipment including radio, mobile, and first aid must be on hand. Pre-session risk assessment must consider participant needs and environmental conditions. Sessions must be rescheduled or additional support provided if unsafe."},
+      {h:"Age Requirements", c:"Adults aged 18 and over are eligible for Adaptive Surf. Participants aged 16 to 18 may participate with active parent or guardian supervision."},
+      {h:"Approval & Contact", c:"Contact: Rachael Green at rachael@aquahealth.gg. Approved by: Paul Donovan, Independent Health and Safety Advisor, States of Guernsey, escape.routes@btopenworld.com"},
+    ]
+  },
+  {
+    id:"p4", title:"Surfing Risk Assessment", sub:"Hazard Register — All Participants", updated:"2026",
+    sections:[
+      {h:"Cliffs", c:"Who: Everyone. Cliffs checked by staff in advance. Rockfall recorded and removed. Signage to notify danger near the bottom of the cliff. Top of cliff checked for movement. Lessons run away from cliffs where possible and move with tides. Participants asked not to climb cliffs during safety briefing."},
+      {h:"Surfboards", c:"Who: Participants, Staff, Volunteers. Damaged boards removed for repair. All boards checked before each lesson."},
+      {h:"The Ocean — Participants", c:"Who: Participants. A trained beach lifeguard present at all times. All participants informed of conditions daily. All participants issued with equipment as per policies and given a beach lesson. All participants guarded — max 8 participants to one instructor."},
+      {h:"The Ocean — Staff & Volunteers", c:"Who: Staff and Volunteers. All staff and volunteers adhere to local authority licence rules. All staff must have good working knowledge of the area. Any hazards are avoided or removed. If unsure participants are taken out of the water immediately."},
+      {h:"Other Surfers", c:"Who: Everyone. Instructors select areas safe for participants and volunteers with a low number of other surfers. All hard board surfers asked not to surf through participants with soft boards. Staff teach all participants how to avoid collisions. All staff demonstrating hard board surfing do so outside the learning area."},
+      {h:"Weather Conditions", c:"Who: Everyone. Bad weather monitored all day including wind speed in mph, wind direction, water temperature in Celsius, swell height in metres, wave height in metres, visibility in metres. Unsafe conditions: wind speeds exceeding 20 mph, extreme wave heights above 2 metres, water temperatures below 10 degrees Celsius, low visibility below 150 metres. Preferable wind direction is offshore going opposite direction to swell. Any advice from RNLI lifeguards will be followed."},
+      {h:"Kites", c:"Who: Everyone. Large kites and kite surfers use designated areas of the beach. If kites are outside these areas instructors will ask the flier to move downwind of the class. Participants and volunteers will be kept upwind in a safe zone."},
+      {h:"Marine Life", c:"Who: Everyone. A trained First Aider will always be on hand. All paid staff are trained to deal with minor stings from jellyfish and weaver fish. Jellyfish stings treated with vinegar. Weaver fish stings treated using hot water. Staff will monitor reports of more dangerous marine life such as Portuguese man of war and if necessary cancel a lesson if they are detected. If large marine life is detected such as seals, sharks, or dolphins all participants and volunteers may be asked to exit the water."},
+      {h:"Marine Pollution", c:"Who: Participants, Volunteers, and Staff. If any marine pollution is reported or detected all participants and volunteers will be escorted out of the water. Staff will check for water contamination and alert lifeguards or the local authority."},
+      {h:"Fire", c:"Who: Everyone. Minimal risk from fire. Any beach fires will be identified and pointed out to participants. Any partly concealed fires on the beach will be marked and lifeguards informed."},
+      {h:"Large Tides", c:"Who: Everyone. Large surf and high tides will be monitored by staff. In the event of a tidal surge all staff will implement the Emergency Action Plan and make sure participants and volunteers are safely escorted away from the surge-affected area. Aqua Health will follow local water safety advice for high tides. Staff to move groups away from cut-off points on incoming tides."},
+      {h:"Medical Conditions", c:"Who: Everyone. A written pro forma or discussion of needs is required detailing each client's needs and specific medical requirements. If necessary extra medical supervision may be required. At the discretion of the chief instructor whether a lesson may continue. All staff and volunteers will be aware of the medical needs of participants and closely monitor them. Any problems or concerns to be immediately reported to the chief instructor. A lesson may be stopped if treatment is required."},
+      {h:"Hypothermia or Hyperthermia", c:"Who: Everyone. Winter or summer wetsuits given out depending on weather conditions. Participants with issues with temperature regulation monitored closely and given extra equipment such as heated vests as required. Everyone to remain hydrated. Cool-shaded areas and heated areas to be used as required. In the event of hypo or hyperthermia first aid procedures from lifeguard training to be followed."},
+      {h:"Drowning", c:"Who: Everyone. All participants to declare their swimming ability. Any non-swimmers to have 1:1 support. Any non-swimmers or weak swimmers to be offered buoyancy aids or lifejackets. All surfers will not go beyond waist depth until an instructor deems them ready."},
+      {h:"Rips & Currents", c:"Who: Everyone. Fixed rips will be pointed out to surfers and lessons positioned to avoid them."},
+      {h:"Road & Traffic", c:"Who: Everyone. Coaches and volunteers to make participants aware of the danger posed by the busy road along the beachfront during safety talks. Any participants with running behaviours to be closely supervised. If required to cross the road use the marked crossings."},
+      {h:"Accessible Ramp", c:"Who: Everyone. Coaches and volunteers to advise caution when walking down the ramp. Anyone with mobility difficulties to be given assistance. For wheelchair users see specific groups."},
+      {h:"Tandem Boards", c:"Who: Everyone. Tandem boards to be used by staff or volunteers who have trained to do so. Tandem team training to be followed. Care to be taken in ensuring the water is clear in front of the board. For seated tandem boards: helmets to be worn by participant and coach. This board is big and heavy and is only to be used with the seat when an experienced coach is surfing. Checks to be made on seat attachment. Manual handling procedures as outlined in the ISA adaptive manual to be followed."},
+      {h:"Deaf Participants", c:"Who: Participants. Extra hand signals may be applied to ensure deaf participants are able to communicate with instructors and volunteers. Normally an instructor who is a trained signer will also be present."},
+      {h:"Autistic Participants", c:"Who: Participants. Staff will observe guidelines for working with people with autism. The lead instructor for each lesson will assess each student and will decide on the necessary ratio. A Pen Portrait system will be in place to inform coaches of the specific needs of the individual. In some cases it may be necessary for a carer or guardian to accompany a client on a lesson. All staff and volunteers are fully briefed on Aqua Health's Vulnerable Adults Policy."},
+      {h:"Children & Vulnerable Adults", c:"Who: Participants. Aqua Health provides adaptive surfing for adults 18 and over except where a 6 to 18 year old is accompanied by a parent or legal guardian who will be required to be involved in the session. All assisting volunteers will have a current DBS check on record and must be familiar with and strictly observe Aqua Health's Vulnerable Adults and Child Protection Policy."},
+      {h:"Weak / Non Swimmers", c:"Who: Participants. All participants will disclose their swimming ability. All non-swimmers will surf within waist-high depth. All weak swimmers unable to confidently swim over 50 metres of open water in a wetsuit to surf within waist-high depth. Weak and non-swimmers to have individual support in the water."},
+      {h:"Amputees & Mobility Issues", c:"Who: Participants. Some adaptations may have to be made to the standard rescue techniques covered in Beach Lifeguard training to ensure they work effectively. All rescue-trained staff will practise any alterations and they will be discussed with a Lifeguard Trainer Assessor."},
+    ]
+  },
+  {
+    id:"p5", title:"Surf Equipment Management Policy", sub:"Selection, Inspection, Maintenance & Disposal", updated:"2026",
+    sections:[
+      {h:"Policy Statement", c:"Aqua Health recognises the importance of effectively managing surf equipment to ensure the safety and enjoyment of clients. Committed to ensuring all surf equipment meets relevant safety standards and manufacturer specifications. Regularly inspecting and maintaining surf equipment to identify and address any defects promptly. Providing appropriate training to staff involved in equipment management. Implementing procedures for the safe storage, transportation, and use of surf equipment. Documenting all inspections, maintenance activities, and incidents."},
+      {h:"Selection and Procurement", c:"Aqua Health will source surf equipment from reputable suppliers known for their quality and reliability. When selecting equipment factors such as durability, suitability for intended use, and compliance with safety standards will be considered. Procurement decisions will be made based on the specific needs of clients and the requirements of activities."},
+      {h:"Inspection and Maintenance", c:"Surf equipment will undergo regular inspections to identify any signs of wear, damage, or deterioration. Pre-use checks will be conducted before each activity to ensure equipment is in good working condition. Any defective or damaged equipment will be promptly removed from service and repaired or replaced as necessary. Maintenance tasks including cleaning, lubrication, and adjustment will be performed regularly."},
+      {h:"Storage and Transportation", c:"Surf equipment will be stored in a designated area that is clean, dry, and secure to prevent damage and theft. When transporting equipment precautions will be taken to ensure it is secured properly and protected from damage during transit. Equipment storage areas will be organised and labelled to facilitate easy access and inventory management."},
+      {h:"Record-Keeping", c:"Detailed records of all surf equipment including purchase dates, maintenance activities, repairs, and replacements will be maintained in the Equipment Record Log. Incident reports on surf equipment failures or malfunctions will be documented, investigated, and addressed to prevent recurrence."},
+      {h:"Quarterly Reviews & Removal from Service", c:"Periodic reviews will be conducted quarterly to ensure that equipment remains fit for purpose. Any equipment found unfit for use will be promptly removed from service and quarantined. This will involve the use of out of use tags via the removal of the board leash and out of order stickers where appropriate."},
+    ]
+  },
+  {
+    id:"p6", title:"Inclusive Surfing Operating Procedures", sub:"SOP — Pre-Activity, On-Site, Post-Activity", updated:"2026",
+    sections:[
+      {h:"Introduction & Objective", c:"The Surfing Operating Procedures outline the essential guidelines and protocols for conducting surfing activities safely and efficiently. The primary objective is to establish standardised practices for organising, conducting, and overseeing surfing activities to minimise risks, promote safety awareness, and enhance the overall experience for all participants."},
+      {h:"4.1 Pre-Activity Preparations", c:"Assessing weather and surf conditions. Conducting participant briefings. Checking equipment and gear."},
+      {h:"4.2 On-Site Operations", c:"Supervising participants in the water. Monitoring environmental factors. Implementing safety measures."},
+      {h:"4.3 Post-Activity Evaluations", c:"Reviewing incidents and near misses. Documenting lessons learned. Updating risk assessments."},
+      {h:"5. Responsibilities", c:"Management: Overseeing adherence to SOP and providing necessary resources. Instructors: Conducting pre-activity briefings and ensuring participant safety. Participants: Following instructions and guidelines and reporting concerns or incidents promptly."},
+      {h:"6. Training and Compliance", c:"All staff involved in surfing activities must undergo comprehensive training on the Surfing Operating Procedures. Regular reviews and updates will be conducted to ensure compliance with industry standards and best practices."},
+    ]
+  },
+  {
+    id:"p7", title:"Staff Competencies Policy", sub:"Selection, Training & First Aid Provision", updated:"2026",
+    sections:[
+      {h:"Instructor Competence", c:"Aqua Health ensures that Rachael Green and all potential future instructors possess the necessary qualifications, certifications, and experience to perform their roles safely and effectively. This includes certifications from recognised governing bodies such as the Royal Life Saving Society RLSS or the International Surfing Association ISA. Aqua Health policy mandates the retention of all certificates of instructors on file for verification purposes."},
+      {h:"Volunteer Competence", c:"Volunteers are provided with appropriate training and supervision to ensure they can support activities safely. While volunteers may not always possess formal qualifications Aqua Health ensures they receive adequate training and guidance to fulfil their roles effectively and contribute to participant safety. Aqua Health policy mandates the retention of all relevant certificates or records of training for volunteers on file, and a completed DBS check."},
+      {h:"First Aid Training", c:"At least one instructor present must hold a valid first aid certification such as a First Aid at Work certificate or equivalent to ensure they can provide immediate assistance during an injury or medical emergency. Certificates of first aid training for all instructors are retained on file as per Aqua Health policy."},
+      {h:"First Aid Provision", c:"Aqua Health ensures that all activities have immediate access to appropriate first aid cover. This includes having trained first aiders present during activities and well-equipped first aid kits readily available at all times."},
+      {h:"Ongoing Development — Training and Drills", c:"Aqua Health is committed to the ongoing development of staff and volunteers. Regular training sessions and drills are conducted to enhance skills, reinforce safety procedures, and address emerging challenges. These sessions cover emergency response protocols, risk management, and participant supervision."},
+      {h:"Team Notice Board", c:"Aqua Health maintains a dedicated team notice board hosted via a private WhatsApp channel. This platform is a central hub for sharing important updates, safety reminders, and relevant information with staff and volunteers. Regular communication via the notice board ensures that all team members are informed and aligned with Aqua Health's safety policies and procedures."},
+    ]
+  },
+  {
+    id:"p8", title:"Surf Safety Monitoring Plan", sub:"Pre-Activity, Conditions Assessment & Supervision", updated:"2026",
+    sections:[
+      {h:"Introduction & Objectives", c:"The Surf Safety Monitoring Plan outlines the procedures and protocols implemented by Aqua Health to ensure the safety of participants during surf activities. Objectives: To assess surf conditions and identify potential hazards before and during surf activities. To monitor participant behaviour and adherence to safety guidelines. To implement corrective actions promptly in response to changing surf conditions or safety concerns."},
+      {h:"Responsibilities — Surf Instructors", c:"Conduct pre-activity safety briefings to inform participants of surf conditions, hazards, and safety guidelines. Monitor participant behaviour and ensure compliance with safety instructions. Assess surf conditions continuously and make decisions regarding activity location, duration, and intensity. Conduct regular inspections of surf equipment, facilities, and activity locations. Monitor weather forecasts and surf conditions to anticipate potential risks."},
+      {h:"Responsibilities — Participants", c:"Follow safety instructions provided by surf instructors. Inform instructors of any medical conditions, physical limitations, or concerns that may affect participation or safety. Report any safety hazards, incidents, or near misses to surf instructors immediately."},
+      {h:"Surf Conditions Assessment", c:"Surf instructors will assess surf conditions regularly using visual observation, weather forecasts, and wave reports from reliable sources. Factors such as wave height, current strength, wind direction, and water visibility will be considered when evaluating surf conditions and determining activity suitability."},
+      {h:"Participant Supervision", c:"Surf instructors will provide close supervision of participants during surf activities ensuring that safety guidelines are followed and potential risks are mitigated. Instructors will maintain visual contact with participants at all times and intervene promptly in the event of an emergency or safety concern."},
+      {h:"Emergency Procedures", c:"In the event of an emergency surf instructors will initiate emergency procedures including evacuation, first aid, and contacting emergency services if necessary. Participants will be instructed on how to respond to emergencies including signalling for assistance, assisting others in distress, and following instructions from instructors."},
+      {h:"Incident Reporting & Communication", c:"Any safety incidents, accidents, or near misses will be reported immediately to designated supervisors. Incident reports will be documented, investigated, and reviewed to identify root causes, implement corrective actions, and prevent recurrence. Communication channels remain open between instructors and participants and will be handled primarily through email and private WhatsApp conversations."},
+      {h:"Review & Continuous Improvement", c:"The Surf Safety Monitoring Plan will be reviewed periodically to assess its effectiveness and identify areas for improvement. Reviews will occur semi-annually or as needed based on feedback and incident reports. Contact: Rachael Green at rachael@aquahealth.gg"},
+    ]
+  },
+  {
+    id:"p9", title:"Vulnerable Adults Protection Policy", sub:"Safeguarding, DBS & Reporting", updated:"2026",
+    sections:[
+      {h:"Policy Statement", c:"Aqua Health is dedicated to providing a safe and supportive environment for vulnerable adults participating in our activities. Committed to protecting vulnerable adults by implementing robust safeguarding procedures to prevent and respond to instances of abuse, neglect, or harm. Providing appropriate training and guidance to staff and volunteers on recognising signs of abuse and their responsibilities. Collaborating with relevant authorities and agencies to report concerns, investigate allegations, and support victims. Respecting the rights, dignity, and privacy of vulnerable adults and ensuring their voices are heard."},
+      {h:"Key Principles", c:"Empowerment: We will support vulnerable adults to make informed decisions and exercise their rights to autonomy and self-determination. Prevention: We will take proactive measures to identify and address factors that may increase the risk of harm or abuse to vulnerable adults. Protection: We will take prompt and appropriate action to safeguard vulnerable adults from abuse, neglect, exploitation, and harm. Partnership: We will work collaboratively with individuals, families, carers, professionals, and agencies to promote the welfare and well-being of vulnerable adults. Accountability: We will hold ourselves accountable for upholding the highest safeguarding standards."},
+      {h:"Procedures", c:"Staff and volunteers will undergo Disclosure and Barring Service DBS checks before engaging in activities involving vulnerable adults. Clear reporting procedures will be established for staff and volunteers to raise concerns or suspicions of abuse or neglect promptly. All allegations or concerns regarding abuse or neglect of vulnerable adults will be taken seriously, investigated thoroughly, and responded to promptly in line with statutory guidance and organisational protocols. Confidentiality will be maintained at all times except where disclosure is necessary to protect the safety and well-being of vulnerable adults or comply with legal obligations."},
+      {h:"Training and Awareness", c:"All staff and volunteers will receive comprehensive training on safeguarding vulnerable adults including recognising signs of abuse, responding to disclosures, and reporting procedures. Regular refresher training and updates will be provided to ensure staff and volunteers remain vigilant and informed about safeguarding issues and best practices."},
+      {h:"Reporting, Monitoring & Contact", c:"Records of safeguarding concerns, incidents, and actions taken will be maintained securely and reviewed regularly to identify trends, areas for improvement, and learning opportunities. The designated safeguarding lead will oversee the implementation of this policy and ensure compliance with relevant legislation, guidance, and organisational standards. Designated Safeguarding Lead: Rachael Green at rachael@aquahealth.gg. This policy applies to all staff, volunteers, contractors, and partners and will be reviewed annually."},
+    ]
+  },
+];
+
+// ── HELPERS ──────────────────────────────────────────────────────
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function highlight(text, q){
+  if(!q) return esc(text);
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return esc(text).replace(re, '<mark>$1</mark>');
+}
+function snippet(text, q, r=130){
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if(idx===-1) return esc(text.slice(0,r*2));
+  const s=Math.max(0,idx-r), e=Math.min(text.length,idx+q.length+r);
+  return (s>0?'…':'')+highlight(text.slice(s,e),q)+(e<text.length?'…':'');
+}
+
+// ── BUILD DOC CARDS ──────────────────────────────────────────────
+function buildDocs(hlQuery){
+  const list = document.getElementById('docsList');
+  list.innerHTML='';
+  POLICIES.forEach(doc=>{
+    const card = document.createElement('div');
+    card.className='doc-card'; card.id='card-'+doc.id;
+    card.innerHTML=`
+      <div class="doc-header">
+        <div class="doc-header-left">
+          <h3>${esc(doc.title)}</h3>
+          <p>${esc(doc.sub)} &nbsp;·&nbsp; Updated ${esc(doc.updated)}</p>
+        </div>
+        <svg class="doc-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="doc-body" id="body-${doc.id}"></div>`;
+    const body = card.querySelector('.doc-body');
+    doc.sections.forEach(sec=>{
+      const hEl=document.createElement('div'); hEl.className='sec-heading';
+      hEl.innerHTML=hlQuery?highlight(sec.h,hlQuery):esc(sec.h);
+      const pEl=document.createElement('div'); pEl.className='sec-content';
+      pEl.innerHTML=hlQuery?highlight(sec.c,hlQuery):esc(sec.c);
+      body.appendChild(hEl); body.appendChild(pEl);
+    });
+    card.querySelector('.doc-header').addEventListener('click',()=>card.classList.toggle('open'));
+    list.appendChild(card);
+  });
+}
+buildDocs(null);
+
+// ── SEARCH ───────────────────────────────────────────────────────
+const searchInput = document.getElementById('searchInput');
+const clearBtn    = document.getElementById('clearBtn');
+const resultsPanel= document.getElementById('resultsPanel');
+const resultsList = document.getElementById('resultsList');
+const resultsHdr  = document.getElementById('resultsHeader');
+const noResults   = document.getElementById('noResults');
+const docsList    = document.getElementById('docsList');
+
+let searchTimer;
+searchInput.addEventListener('input', ()=>{
+  clearTimeout(searchTimer);
+  const q = searchInput.value.trim();
+  clearBtn.classList.toggle('show', q.length>0);
+  searchTimer=setTimeout(()=>doSearch(q), 220);
+});
+
+clearBtn.addEventListener('click',()=>{
+  searchInput.value='';
+  clearBtn.classList.remove('show');
+  doSearch('');
+  searchInput.focus();
+});
+
+function doSearch(q){
+  setTab('docs');
+  if(q.length<2){
+    resultsPanel.classList.remove('active');
+    docsList.style.display='block';
+    noResults.style.display='none';
+    buildDocs(null);
+    return;
+  }
+  const ql=q.toLowerCase();
+  const results=[];
+  POLICIES.forEach(doc=>{
+    doc.sections.forEach(sec=>{
+      if((sec.h+' '+sec.c).toLowerCase().includes(ql)){
+        results.push({doc,sec,q});
+      }
+    });
+  });
+
+  resultsPanel.classList.add('active');
+  docsList.style.display='none';
+
+  if(results.length===0){
+    resultsList.innerHTML='';
+    resultsHdr.textContent='';
+    noResults.style.display='block';
+    return;
+  }
+  noResults.style.display='none';
+  resultsHdr.textContent=`${results.length} result${results.length!==1?'s':''} for "${q}"`;
+  resultsList.innerHTML='';
+  results.forEach(r=>{
+    const div=document.createElement('div');
+    div.className='result-card';
+    div.innerHTML=`
+      <div class="result-doc">${esc(r.doc.title)}</div>
+      <div class="result-sec">${highlight(r.sec.h,r.q)}</div>
+      <div class="result-snippet">${snippet(r.sec.c,r.q)}</div>`;
+    div.addEventListener('click',()=>{
+      searchInput.value='';
+      clearBtn.classList.remove('show');
+      buildDocs(r.q);
+      resultsPanel.classList.remove('active');
+      docsList.style.display='block';
+      noResults.style.display='none';
+      setTimeout(()=>{
+        const card=document.getElementById('card-'+r.doc.id);
+        if(card){ card.classList.add('open'); card.scrollIntoView({behavior:'smooth',block:'start'}); }
+      },60);
+    });
+    resultsList.appendChild(div);
+  });
+}
+
+// ── TABS ─────────────────────────────────────────────────────────
+function setTab(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  document.getElementById('tab-quickref').style.display = name==='quickref'?'block':'none';
+  document.getElementById('tab-docs').style.display     = name==='docs'?'block':'none';
+  document.getElementById('mainContent').scrollTop=0;
+}
+document.querySelectorAll('.tab-btn').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+
+// ── SERVICE WORKER ───────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
